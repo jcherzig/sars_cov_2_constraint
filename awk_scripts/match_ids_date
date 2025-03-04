@@ -1,0 +1,49 @@
+awk '
+
+#usage match_ids INDEXFILE.txt FASTAFILE.fasta > OUTPUT.fasta
+# note that files must be in this order, and must have extensions .txt and .fasta respectively.
+
+BEGIN {
+    n=0 
+    id_match = 0 
+}
+
+#read in list of dates of isolates, stick in hash.
+#Note that the hash keys have to be the names for later steps to work.
+FILENAME ~".txt"  {
+
+  isolate_id[$1] = $1
+  n++
+}
+
+
+#Read fasta file.  Process it without taking it all into memory
+
+FILENAME ~".fasta" {
+
+    #Find and process header lines
+    if (substr($0,1,1) ==">") {
+        #assume no match until otherwise determined
+        id_match = 0 
+
+        #get date from fasta header line for matching
+        split($0,a,"|")
+        fasta_date = a[3]
+ 
+        if (fasta_date in isolate_id) {
+            #flag a match if found
+            id_match=1
+        }
+
+    }
+        #print out the header and sequence if it matches
+        if (id_match ==1) {
+            print $0
+
+        }
+
+
+}
+
+
+'  $*
